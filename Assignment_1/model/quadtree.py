@@ -6,10 +6,10 @@ class Rectangle:
         self.right = right
 
     def __repr__(self):
-        result = "{ up:" + str(self.top) + '\n'
-        result += "bottom:" + str(self.bottom) + '\n'
-        result += "left:" + str(self.left) + '\n'
-        result += "right:" + str(self.right) + ' }'
+        result = "{\n\tup: " + str(self.top) + '\n'
+        result += "\tbottom: " + str(self.bottom) + '\n'
+        result += "\tleft: " + str(self.left) + '\n'
+        result += "\tright: " + str(self.right) + '\n}'
         return result
 
 
@@ -76,5 +76,4 @@ class QuadTreeNode:
                 subtree_depth = subtree.depth()
                 depth = subtree_depth if subtree_depth > depth else depth
         depth += 1
-        print("tree in ", depth, "layer :", self.nodeNum, "(nodes)", self.isLeaf)
         return depth
