@@ -36,15 +36,12 @@ class QuadTreeNode:
         self.MBR.left = nodeIndex[0] if self.MBR.left > nodeIndex[0] else self.MBR.left
         self.MBR.top = nodeIndex[1] if self.MBR.top < nodeIndex[1] else self.MBR.top
         self.MBR.bottom = nodeIndex[1] if self.MBR.bottom > nodeIndex[1] else self.MBR.bottom
+        self.bucket.append(nodeIndex)
         if self.isLeaf:
             if self.nodeNum >= QuadTreeNode.MAX_NODE_NUM:
-                self.bucket.append(nodeIndex)
                 for node in self.bucket:
                     self.addToSubTree(node)
                 self.isLeaf = False
-                self.bucket = None
-            else:
-                self.bucket.append(nodeIndex)
         else:
             self.addToSubTree(nodeIndex)
         self.nodeNum += 1
