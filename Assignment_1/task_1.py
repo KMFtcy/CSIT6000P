@@ -1,9 +1,12 @@
 import load_dataset
 from model import MBR
+from model import quadtree
 
 poi_dataset_lines = load_dataset.load()
 poi_dataset = []
 
+
+# === task 1
 # === question 1
 mbr = MBR.MBR()
 print("Analyze dataset...")
@@ -51,3 +54,23 @@ for index in grid_idx:
     if len(grid_idx[index]) > 5:
         cells_count += 1
 print("Cells count for contains no more than 5 points: ", pow(pow(2, resolution), 2)-cells_count)
+
+
+# === task 2
+# === question 1
+quadtree = quadtree.QuadTreeNode()
+for point in poi_dataset:
+    quadtree.addNode(point)
+print("layer")
+print(quadtree.depth())
+stack = [quadtree]
+leafNode = []
+while len(stack) > 0:
+    tree = stack.pop()
+    for subtree in [tree.topLeft, tree.topRight, tree.bottomLeft, tree.bottomRight]:
+        if subtree != None:
+            stack.append(subtree)
+    if tree.isLeaf:
+        leafNode.append(tree)
+for tree in leafNode:
+    print(tree.z_value)
