@@ -1,6 +1,6 @@
 import csv
 
-dataset_path = 'dataset.csv'
+dataset_path = '/home/tangchaoyang/develop/CSIT6000P/Assignment_1/dataset.csv'
 
 
 def load():
