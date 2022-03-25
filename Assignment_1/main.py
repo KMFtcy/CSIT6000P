@@ -1,6 +1,7 @@
 import load_dataset
 from model import MBR
 from model import quadtree
+import random
 
 poi_dataset_lines = load_dataset.load()
 poi_dataset = []
@@ -81,10 +82,6 @@ print("z_value index created")
 
 
 # === task 3
-x_low = 116
-y_low = 40
-x_high = 117
-y_high = 41
 # === question 1
 def search_grid_idx_windows(grid_idx, mbr, resolution, x_low, y_low, x_high, y_high):
     # get (x_low,y_low) and (x_high,y_high) index in grid
@@ -111,11 +108,18 @@ def search_grid_idx_windows(grid_idx, mbr, resolution, x_low, y_low, x_high, y_h
     for grid in grid_result:
         point_result += grid
     return point_result
-print(len(search_grid_idx_windows(grid_idx, mbr,
-      resolution, x_low, y_low, x_high, y_high)))
 # === question 2
-
-
-def search_zvalue_idx_windows(x_low, y_low, x_high, y_high):
+def search_zvalue_idx_windows(zvalue_index,x_low, y_low, x_high, y_high):
     result = []
     return result
+# === question 3
+for i in range(20):
+    print("=== search ", i+1)
+    x_low = mbr.left + random.random() * (mbr.right - mbr.left)
+    y_low = mbr.bottom + random.random() * (mbr.top - mbr.bottom)
+    x_high = x_low + random.random() * (mbr.right - x_low)
+    y_high = y_low + random.random() * (mbr.top - y_low)
+    print("x_low: ",x_low,", y_low: ", y_low)
+    print("x_high: ",x_high, ", y_high: ",y_high)
+    print("points counts result from grid index: ",len(search_grid_idx_windows(grid_idx, mbr,
+      resolution, x_low, y_low, x_high, y_high)))
