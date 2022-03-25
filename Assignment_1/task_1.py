@@ -46,6 +46,7 @@ while not is_finish:
                 is_finish = False
                 break
     if not is_finish:
+        grid_idx = {}
         resolution += 1
 print("Target resolution: ", resolution)
 # === question 3
@@ -53,24 +54,68 @@ cells_count = 0
 for index in grid_idx:
     if len(grid_idx[index]) > 5:
         cells_count += 1
-print("Cells count for contains no more than 5 points: ", pow(pow(2, resolution), 2)-cells_count)
+print("Cells count for contains no more than 5 points: ",
+      pow(pow(2, resolution), 2)-cells_count)
 
 
 # === task 2
 # === question 1
+print("=== create quadtree and z_value")
 quadtree = quadtree.QuadTreeNode()
 for point in poi_dataset:
     quadtree.addNode(point)
-print("layer")
-print(quadtree.depth())
+print("quadtree created")
+# === question 2
+print("=== create z_value index")
 stack = [quadtree]
-leafNode = []
+zvalue_index = {}
 while len(stack) > 0:
     tree = stack.pop()
-    for subtree in [tree.topLeft, tree.topRight, tree.bottomLeft, tree.bottomRight]:
+    for subtree in [tree.bottomLeft, tree.topLeft, tree.bottomRight, tree.topRight]:
         if subtree != None:
             stack.append(subtree)
     if tree.isLeaf:
-        leafNode.append(tree)
-for tree in leafNode:
-    print(tree.z_value)
+        zvalue_index[tree.z_value] = tree.bucket
+zvalue_index = sorted(zvalue_index)
+print("z_value index created")
+
+
+# === task 3
+x_low = 116
+y_low = 40
+x_high = 117
+y_high = 41
+# === question 1
+def search_grid_idx_windows(grid_idx, mbr, resolution, x_low, y_low, x_high, y_high):
+    # get (x_low,y_low) and (x_high,y_high) index in grid
+    v_step = (mbr.right - mbr.left)/pow(2, resolution)
+    h_step = (mbr.top - mbr.bottom)/pow(2, resolution)
+    low_point_h_idx = int((x_low-mbr.left)/v_step) + 1
+    low_point_v_idx = int((mbr.top - y_low)/h_step)
+    low_point_idx = pow(2, resolution)*low_point_v_idx + low_point_h_idx
+    high_point_h_idx = int((x_high-mbr.left)/v_step) + 1
+    high_point_v_idx = int((mbr.top - y_high)/h_step)
+    high_point_idx = pow(2, resolution)*high_point_v_idx + high_point_h_idx
+    # catch grid
+    grid_result = []
+    grid_height = int((low_point_idx - high_point_idx)/resolution) + 1
+    grid_width = (high_point_idx + grid_height * resolution) - low_point_idx
+    search_pointer = high_point_idx - grid_width
+    while search_pointer != low_point_idx:
+        for i in range(grid_width + 1):
+            if search_pointer + i in grid_idx:
+                grid_result.append(grid_idx[search_pointer + i])
+        search_pointer += resolution
+    # catch point in grid result
+    point_result = []
+    for grid in grid_result:
+        point_result += grid
+    return point_result
+print(len(search_grid_idx_windows(grid_idx, mbr,
+      resolution, x_low, y_low, x_high, y_high)))
+# === question 2
+
+
+def search_zvalue_idx_windows(x_low, y_low, x_high, y_high):
+    result = []
+    return result
