@@ -23,8 +23,8 @@ class QuadTreeNode:
     MAX_NODE_NUM = 5
     MAX_DEPTH = 9
 
-    def __init__(self, z_value = 1, node_depth=1, isLeaf=True, topLeft=None, topRight=None, bottomLeft=None, bottomRight=None):
-        self.MBR = MBR(0, float('inf'), float('inf'), 0)
+    def __init__(self, MBR=None, z_value=1, node_depth=1, isLeaf=True, topLeft=None, topRight=None, bottomLeft=None, bottomRight=None):
+        self.MBR = MBR
         self.topLeft = topLeft
         self.topRight = topRight
         self.bottomLeft = bottomLeft
@@ -39,10 +39,11 @@ class QuadTreeNode:
         self.z_value = z_value
 
     def addNode(self, nodeIndex):
-        self.MBR.right = nodeIndex[0] if self.MBR.right < nodeIndex[0] else self.MBR.right
-        self.MBR.left = nodeIndex[0] if self.MBR.left > nodeIndex[0] else self.MBR.left
-        self.MBR.top = nodeIndex[1] if self.MBR.top < nodeIndex[1] else self.MBR.top
-        self.MBR.bottom = nodeIndex[1] if self.MBR.bottom > nodeIndex[1] else self.MBR.bottom
+        if nodeIndex[0] > self.MBR.right or nodeIndex[0] < self.MBR.left or nodeIndex[1] > self.MBR.top or nodeIndex[1] < self.MBR.bottom:
+            print("node is out of MBR")
+            print("node depth:",self.node_depth,", isleaf: ",self.isLeaf, ", x:", nodeIndex[0], ", y:", nodeIndex[1])
+            print(self.MBR)
+            return
         self.bucket.append(nodeIndex)
         self.nodeNum += 1
         if self.isLeaf:
@@ -56,34 +57,42 @@ class QuadTreeNode:
     def addToSubTree(self, node):
         mid_h = (self.MBR.top + self.MBR.bottom)/2
         mid_v = (self.MBR.left + self.MBR.right)/2
-        subtree = QuadTreeNode(node_depth = self.node_depth + 1)
+        subtree = QuadTreeNode(node_depth=self.node_depth + 1)
         if node[0] <= mid_v and node[1] < mid_h:
             if self.bottomLeft == None:
                 self.bottomLeft = subtree
                 zvalue_str = str(self.z_value)
                 zvalue_str += '1'
                 subtree.setZvalue(int(zvalue_str))
+                subtree.setMBR(
+                    MBR(mid_h, self.MBR.bottom, self.MBR.left, mid_v))
             self.bottomLeft.addNode(node)
-        elif node[0] >= mid_v and node[1] < mid_h:
+        elif node[0] >= mid_v and node[1] > mid_h:
             if self.bottomRight == None:
                 self.bottomRight = subtree
                 zvalue_str = str(self.z_value)
                 zvalue_str += '4'
                 subtree.setZvalue(int(zvalue_str))
+                subtree.setMBR(
+                    MBR(self.MBR.top, mid_h, mid_v, self.MBR.right))
             self.bottomRight.addNode(node)
-        elif node[0] <= mid_v and node[1] > mid_h:
+        elif node[0] < mid_v and node[1] >= mid_h:
             if self.topLeft == None:
                 self.topLeft = subtree
                 zvalue_str = str(self.z_value)
                 zvalue_str += '2'
                 subtree.setZvalue(int(zvalue_str))
+                subtree.setMBR(
+                    MBR(self.MBR.top, mid_h, self.MBR.left, mid_v))
             self.topLeft.addNode(node)
-        elif node[0] >= mid_v and node[1] > mid_h:
+        elif node[0] > mid_v and node[1] <= mid_h:
             if self.topRight == None:
                 self.topRight = subtree
                 zvalue_str = str(self.z_value)
                 zvalue_str += '3'
                 subtree.setZvalue(int(zvalue_str))
+                subtree.setMBR(
+                    MBR(mid_h, self.MBR.bottom,  mid_v, self.MBR.right))
             self.topRight.addNode(node)
 
     def depth(self):
@@ -95,5 +104,8 @@ class QuadTreeNode:
         depth += 1
         return depth
 
-    def setZvalue(self,z_value):
+    def setZvalue(self, z_value):
         self.z_value = z_value
+
+    def setMBR(self, MBR):
+        self.MBR = MBR

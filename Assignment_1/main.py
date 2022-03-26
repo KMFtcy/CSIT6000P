@@ -1,5 +1,4 @@
 import load_dataset
-from model import MBR
 from model import quadtree
 import random
 
@@ -9,7 +8,7 @@ poi_dataset = []
 
 # === task 1
 # === question 1
-mbr = MBR.MBR()
+mbr = quadtree.MBR()
 print("Analyze dataset...")
 for row in poi_dataset_lines:
     x, y = row.split(',')
@@ -62,7 +61,7 @@ print("Cells count for contains no more than 5 points: ",
 # === task 2
 # === question 1
 print("=== create quadtree and z_value")
-quadtree = quadtree.QuadTreeNode()
+quadtree = quadtree.QuadTreeNode(MBR=mbr)
 for point in poi_dataset:
     quadtree.addNode(point)
 print("quadtree created")
@@ -70,13 +69,41 @@ print("quadtree created")
 print("=== create z_value index")
 stack = [quadtree]
 zvalue_index = {}
+test_count = 0
+test_dic = {}
+all_zvalue_index = {}
 while len(stack) > 0:
     tree = stack.pop()
     for subtree in [tree.bottomLeft, tree.topLeft, tree.bottomRight, tree.topRight]:
         if subtree != None:
             stack.append(subtree)
     if tree.isLeaf:
-        zvalue_index[tree.z_value] = tree.bucket
+        tree_zvalue = str(tree.z_value)
+        while len(tree_zvalue) < resolution:
+            tree_zvalue += '0'
+        power = 0
+        cell_zvalue_10 = 0
+        for word in reversed(tree_zvalue):
+            index = int(word) - 1
+            if index == -1:
+                power += 1
+                continue
+            cell_zvalue_10 += index * pow(4, power)
+            power += 1
+        if cell_zvalue_10 in test_dic:
+            print("old zvalue: ", test_dic[cell_zvalue_10])
+            print("new zvalue: [", tree.z_value, ", ",
+                  tree_zvalue, ", ", cell_zvalue_10, "]")
+            print("---")
+            test_count += 1
+        else:
+            test_dic[cell_zvalue_10] = [
+                tree.z_value, tree_zvalue, cell_zvalue_10]
+        zvalue_index[cell_zvalue_10] = tree.bucket
+        all_zvalue_index[tree.z_value] = 1
+print(len(zvalue_index))
+print(len(all_zvalue_index))
+print("hit count: ", test_count)
 zvalue_index = sorted(zvalue_index)
 print("z_value index created")
 
@@ -109,9 +136,13 @@ def search_grid_idx_windows(grid_idx, mbr, resolution, x_low, y_low, x_high, y_h
         point_result += grid
     return point_result
 # === question 2
-def search_zvalue_idx_windows(zvalue_index,x_low, y_low, x_high, y_high):
+
+
+def search_zvalue_idx_windows(zvalue_index, x_low, y_low, x_high, y_high):
     result = []
     return result
+
+
 # === question 3
 for i in range(20):
     print("=== search ", i+1)
@@ -119,7 +150,7 @@ for i in range(20):
     y_low = mbr.bottom + random.random() * (mbr.top - mbr.bottom)
     x_high = x_low + random.random() * (mbr.right - x_low)
     y_high = y_low + random.random() * (mbr.top - y_low)
-    print("x_low: ",x_low,", y_low: ", y_low)
-    print("x_high: ",x_high, ", y_high: ",y_high)
-    print("points counts result from grid index: ",len(search_grid_idx_windows(grid_idx, mbr,
-      resolution, x_low, y_low, x_high, y_high)))
+    print("x_low: ", x_low, ", y_low: ", y_low)
+    print("x_high: ", x_high, ", y_high: ", y_high)
+    print("points counts result from grid index: ", len(search_grid_idx_windows(grid_idx, mbr,
+                                                                                resolution, x_low, y_low, x_high, y_high)))
