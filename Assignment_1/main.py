@@ -88,7 +88,6 @@ while len(stack) > 0:
             cell_zvalue_10 += index * pow(4, power)
             power += 1
         zvalue_index[cell_zvalue_10] = tree.bucket
-zvalue_index = sorted(zvalue_index)
 print("z_value index created")
 
 
@@ -122,8 +121,48 @@ def search_grid_idx_windows(grid_idx, mbr, resolution, x_low, y_low, x_high, y_h
 # === question 2
 
 
-def search_zvalue_idx_windows(zvalue_index, x_low, y_low, x_high, y_high):
+def get_point_zvalue(level, x, y):
+    key = 0
+    for i in range(level):
+        key |= (x & 1) << (2 * i + 1)
+        key |= (y & 1) << (2 * i)
+        x >>= 1
+        y >>= 1
+    return key
+
+
+def binary_search_zvalue(zvalue_index, l, r, target):
+    if r > l:
+        mid = int(l + (r - l)/2)
+        if zvalue_index[mid] == target:
+            return mid
+        elif zvalue_index[mid] > target:
+            return binary_search_zvalue(zvalue_index, l, mid-1, target)
+        else:
+            return binary_search_zvalue(zvalue_index, mid+1, r, target)
+    else:
+        return r
+
+
+def search_zvalue_idx_windows(zvalue_index, mbr, resolution, x_low, y_low, x_high, y_high):
+    v_step = (mbr.right - mbr.left)/pow(2, resolution)
+    h_step = (mbr.top - mbr.bottom)/pow(2, resolution)
+    low_point_h_idx = int((x_low-mbr.left)/v_step) + 1
+    low_point_v_idx = int((y_low - mbr.bottom)/h_step)
+    high_point_h_idx = int((x_high-mbr.left)/v_step) + 1
+    high_point_v_idx = int((y_high - mbr.bottom)/h_step)
+    low_zvalue = get_point_zvalue(resolution-1, low_point_h_idx, low_point_v_idx)
+    high_zvalue = get_point_zvalue(
+        resolution-1, high_point_h_idx, high_point_v_idx)
+    keys = sorted(zvalue_index)
+    l = 0
+    r = len(keys)
+    low_zvalue_index = binary_search_zvalue(keys, l, r, low_zvalue)
+    high_zvalue_index = binary_search_zvalue(keys, l, r, high_zvalue)
     result = []
+    for i in range(low_zvalue_index, high_zvalue_index):
+        result += zvalue_index[keys[i]]
+        continue
     return result
 
 
@@ -138,3 +177,5 @@ for i in range(20):
     print("x_high: ", x_high, ", y_high: ", y_high)
     print("points counts result from grid index: ", len(search_grid_idx_windows(grid_idx, mbr,
                                                                                 resolution, x_low, y_low, x_high, y_high)))
+    print("points counts result from zvalue index: ", len(search_zvalue_idx_windows(zvalue_index, mbr,
+                                                                                    resolution, x_low, y_low, x_high, y_high)))
