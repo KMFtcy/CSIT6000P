@@ -69,9 +69,6 @@ print("quadtree created")
 print("=== create z_value index")
 stack = [quadtree]
 zvalue_index = {}
-test_count = 0
-test_dic = {}
-all_zvalue_index = {}
 while len(stack) > 0:
     tree = stack.pop()
     for subtree in [tree.bottomLeft, tree.topLeft, tree.bottomRight, tree.topRight]:
@@ -90,20 +87,7 @@ while len(stack) > 0:
                 continue
             cell_zvalue_10 += index * pow(4, power)
             power += 1
-        if cell_zvalue_10 in test_dic:
-            print("old zvalue: ", test_dic[cell_zvalue_10])
-            print("new zvalue: [", tree.z_value, ", ",
-                  tree_zvalue, ", ", cell_zvalue_10, "]")
-            print("---")
-            test_count += 1
-        else:
-            test_dic[cell_zvalue_10] = [
-                tree.z_value, tree_zvalue, cell_zvalue_10]
         zvalue_index[cell_zvalue_10] = tree.bucket
-        all_zvalue_index[tree.z_value] = 1
-print(len(zvalue_index))
-print(len(all_zvalue_index))
-print("hit count: ", test_count)
 zvalue_index = sorted(zvalue_index)
 print("z_value index created")
 
