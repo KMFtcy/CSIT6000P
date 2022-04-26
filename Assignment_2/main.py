@@ -1,6 +1,7 @@
 import sys,getopt
 sys.path.append("..")
-from model import RTree
+from model.RTree import RTree
+from model.Point import Point
 import load_dataset
 
 poi_dataset_lines = load_dataset.load()
@@ -11,6 +12,7 @@ d = 8
 
 
 def main(argv):
+    # get command args
     try:
         opts, args = getopt.getopt(argv,"n:d:")
     except getopt.GetoptError:
@@ -21,17 +23,21 @@ def main(argv):
             print("n =", arg)
         elif opt in ("-d"):
             print(opt)
+
+    rt = RTree(n,d)
     # load data
     for row in poi_dataset_lines:
         x, y = row.split(',')
         x = float(x)
         y = float(y)
-        node = []
-        node.append(x)
-        node.append(y)
-        poi_dataset.append(node)
+        node_index = []
+        node_index.append(x)
+        node_index.append(y)
+        point = Point(index = node_index)
+        poi_dataset.append(node_index)
+        rt.insert(point)
     print("Data load complete")
-    RTree.RTreeNode.info()
+    print(rt.mbr)
 
 
 

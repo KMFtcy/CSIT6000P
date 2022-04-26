@@ -1,4 +1,6 @@
-import MBR
+from . import MBR
+
+
 class MBR:
     def __init__(self, top=0, bottom=float('inf'), left=float('inf'), right=0):
         self.top = top
@@ -13,8 +15,17 @@ class MBR:
         result += "\tright: " + str(self.right) + '\n}'
         return result
 
+    """
+    If the left edge of the first rectangle is to the right of the right edge of the second rectangle, or the bottom edge of the first rectangle is above the top edge of the second rectangle, then the rectangles do not intersect
+
+    :param mbr1: the first MBR
+    :type mbr1: MBR
+    :param mbr2: the MBR that we want to check if it intersects with mbr1
+    :type mbr2: MBR
+    :return: A boolean value.
+    """
     @staticmethod
-    def isIntersect(mbr1:MBR, mbr2:MBR):
+    def isIntersect(mbr1: MBR, mbr2: MBR):
         newLeft = max(mbr1.left, mbr2.left)
         newBottom = max(mbr1.bottom, mbr2.bottom)
         newRight = min(mbr1.right, mbr2.right)
