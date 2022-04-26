@@ -35,10 +35,19 @@ def main(argv):
         node_index.append(y)
         point = Point(index = node_index)
         poi_dataset.append(node_index)
-        rt.insert(point)
+        rt = rt.insert(point)
     print("Data load complete")
     print(rt.mbr)
+    print(len(rt.point_pool))
+    printTree(rt,0)
 
+
+def printTree(node, blk):
+    for i in range(blk):
+        print(" ", end="")
+    print("|-*")
+    for child in node.children:
+        printTree(child,blk+1)
 
 
 

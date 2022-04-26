@@ -15,7 +15,6 @@ class RTree:
     def __init__(self,n = 64, d = 8):
         self.n = n
         self.d = d
-        self.isRoot = True
         self.mbr = MBR()
         self.children = []
         self.point_pool = [] # leaf objects.
@@ -63,8 +62,8 @@ class RTree:
         if len(trees) <= 1:
             return trees
         mid = len(trees) // 2
-        left = RTree.mergeSort(trees[:mid])
-        right = RTree.mergeSort(trees[mid:])
+        left = RTree.mergeSortTrees(trees[:mid])
+        right = RTree.mergeSortTrees(trees[mid:])
         return merge(left, right)
 
     def insert(self, point:Point):
@@ -82,7 +81,8 @@ class RTree:
         if len(leafNode.point_pool) > self.n:
             leafNode, newNode = RTree.splitLeafNode(leafNode)
         # pass up the change, if node has been splited, apply to the new node too
-        RTree.adjustTreeFromLeaf(leafNode,newNode)
+        root = RTree.adjustTreeFromLeaf(leafNode,newNode)
+        return root
 
     @staticmethod
     def splitLeafNode(treeNode:RTree):
@@ -144,8 +144,8 @@ class RTree:
             targetChild = treeNode
             for child in treeNode.children:
                 mbr = MBR(child.mbr.top,child.mbr.bottom,child.mbr.left,child.mbr.right)
-                x = point[0]
-                y = point[1]
+                x = point.index[0]
+                y = point.index[1]
                 mbr.left = x if x < mbr.left else mbr.left
                 mbr.right = x if x > mbr.right else mbr.right
                 mbr.top = y if y > mbr.top else mbr.top
@@ -154,7 +154,7 @@ class RTree:
                 if mbr_size < minSize:
                     minSize = mbr_size
                     targetChild = child
-            return RTree.chooseLeaf(targetChild)
+            return RTree.chooseLeaf(point,targetChild)
         return treeNode
 
     @staticmethod
@@ -175,7 +175,8 @@ class RTree:
                 parent.mbr.bottom = childMBR.bottom if childMBR.bottom < parent.mbr.bottom else parent.mbr.bottom
             # 向上传递结点分裂
             if NN != None:
-                parent.children.appen(NN)
+                parent.children.append(NN)
+                NN.parent = parent
                 childMBR = NN.mbr
                 childMBR = child.mbr
                 parent.mbr.left = childMBR.left if childMBR.left < parent.mbr.left else parent.mbr.left
@@ -191,14 +192,16 @@ class RTree:
             newRoot = RTree(N.n,N.d)
             newRoot.children.append(N)
             newRoot.children.append(NN)
+            N.parent = newRoot
+            NN.parent = newRoot
             for child in newRoot.children:
                 childMBR = child.mbr
                 newRoot.mbr.left = childMBR.left if childMBR.left < newRoot.mbr.left else newRoot.mbr.left
                 newRoot.mbr.right = childMBR.right if childMBR.right > newRoot.mbr.right else newRoot.mbr.right
                 newRoot.mbr.top = childMBR.top if childMBR.top > newRoot.mbr.top else newRoot.mbr.top
                 newRoot.mbr.bottom = childMBR.bottom if childMBR.bottom < newRoot.mbr.bottom else newRoot.mbr.bottom
-
-
+            N = newRoot
+        return N
 
     @staticmethod
     def search(rectangle, rtree):
