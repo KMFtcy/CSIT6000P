@@ -158,9 +158,9 @@ class RTree:
         return treeNode
 
     @staticmethod
-    def adjustTreeFromLeaf(treeNode:RTree, newNode:RTree = None):
-        N = treeNode
-        NN = newNode
+    def adjustTreeFromLeaf(leafNode:RTree, newLeafNode:RTree = None):
+        N = leafNode
+        NN = newLeafNode
         while True:
             # stop if it is root node
             if N.parent == None:
@@ -203,7 +203,17 @@ class RTree:
             N = newRoot
         return N
 
+    def height(self):
+        if len(self.children) == 0:
+            return 1
+        height = 0
+        for child in self.children:
+            sub_height = child.height()
+            if sub_height > height:
+                height = sub_height
+        return sub_height + 1
+
     @staticmethod
-    def search(rectangle, rtree):
+    def knnSearch(rtree, point, k):
         print()
     # if rtree.subTree != None:

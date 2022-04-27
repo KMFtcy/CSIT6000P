@@ -37,9 +37,7 @@ def main(argv):
         poi_dataset.append(node_index)
         rt = rt.insert(point)
     print("Data load complete")
-    print(rt.mbr)
-    print(len(rt.point_pool))
-    printTree(rt,0)
+    print(rt.height())
 
 
 def printTree(node, blk):
