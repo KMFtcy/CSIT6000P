@@ -34,12 +34,12 @@ class MBR:
         return not ((newLeft > newRight) or (newBottom > newTop))
 
     @staticmethod
-    def isIntersectByCircle(mbr: MBR, centre:Point, radius):
+    def isIntersectByCircle(mbr: MBR, centre:Point.Point, radius):
         dist = MBR.getMindist(mbr,centre)
         return dist < radius
 
     @staticmethod
-    def getMindist(mbr: MBR, point: Point):
+    def getMindist(mbr: MBR, point: Point.Point):
         x = point.index[0]
         y = point.index[1]
         top = mbr.top
@@ -63,3 +63,17 @@ class MBR:
         if right < x and y < top and y > bottom:
             return x - right
         return 0
+
+    @staticmethod
+    def getMinMaxDist(mbr: MBR, point: Point.Point):
+        # TODO: 可能有坑，没有考虑点在mbr中情况
+        corner1 = Point.Point(index = [mbr.left, mbr.top])
+        corner2 = Point.Point(index = [mbr.left, mbr.bottom])
+        corner3 = Point.Point(index = [mbr.right, mbr.top])
+        corner4 = Point.Point(index = [mbr.right, mbr.bottom])
+        result = Point.Point.distance(point,corner1)
+        for corner in [corner2, corner3, corner4]:
+            dist = Point.Point.distance(point,corner)
+            if dist < result:
+                result = dist
+        return result

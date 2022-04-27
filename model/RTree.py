@@ -4,6 +4,7 @@ from . import RTree
 import sys
 import math
 
+
 class RTree:
 
     """
@@ -13,17 +14,18 @@ class RTree:
     :param n: The maximum number of points in leaf node
     :param d: A non-leaf node can have a maximum of d subtrees
     """
-    def __init__(self,n = 64, d = 8):
+
+    def __init__(self, n=64, d=8):
         self.n = n
         self.d = d
         self.mbr = MBR()
         self.children = []
-        self.point_pool = [] # leaf objects.
+        self.point_pool = []  # leaf objects.
         self.parent = None
 
     @staticmethod
     def mergeSort(points):
-    # merge process
+        # merge process
         def merge(left, right):
             result = []  # save merge result
             i = j = 0
@@ -34,7 +36,7 @@ class RTree:
                 else:
                     result.append(right[j])
                     j += 1
-            result = result + left[i:] + right[j:] # add the rest elements
+            result = result + left[i:] + right[j:]  # add the rest elements
             return result
         # recursive
         if len(points) <= 1:
@@ -46,7 +48,7 @@ class RTree:
 
     @staticmethod
     def mergeSortTrees(trees):
-    # merge process
+        # merge process
         def merge(left, right):
             result = []  # save merge result
             i = j = 0
@@ -57,7 +59,7 @@ class RTree:
                 else:
                     result.append(right[j])
                     j += 1
-            result = result + left[i:] + right[j:] # add the rest elements
+            result = result + left[i:] + right[j:]  # add the rest elements
             return result
         # recursive
         if len(trees) <= 1:
@@ -67,9 +69,9 @@ class RTree:
         right = RTree.mergeSortTrees(trees[mid:])
         return merge(left, right)
 
-    def insert(self, point:Point):
+    def insert(self, point: Point):
         # choose a reasonable leaf node to add the point
-        leafNode = RTree.chooseLeaf(point,self)
+        leafNode = RTree.chooseLeaf(point, self)
         # add to leaf node, if the node can not contains no more points, split
         leafNode.point_pool.append(point)
         x = point.index[0]
@@ -82,14 +84,14 @@ class RTree:
         if len(leafNode.point_pool) > self.n:
             leafNode, newNode = RTree.splitLeafNode(leafNode)
         # pass up the change, if node has been splited, apply to the new node too
-        root = RTree.adjustTreeFromLeaf(leafNode,newNode)
+        root = RTree.adjustTreeFromLeaf(leafNode, newNode)
         return root
 
     @staticmethod
-    def splitLeafNode(treeNode:RTree):
+    def splitLeafNode(treeNode: RTree):
         # split node depends on x coordinate
         pointPoolLen = len(treeNode.point_pool)
-        newNode = RTree(treeNode.n,treeNode.d)
+        newNode = RTree(treeNode.n, treeNode.d)
         fullPool = treeNode.point_pool
         # order point by x value
         fullPool = RTree.mergeSort(fullPool)
@@ -115,8 +117,8 @@ class RTree:
         return treeNode, newNode
 
     @staticmethod
-    def splitMidNode(treeNode:RTree):
-        newNode = RTree(treeNode.n,treeNode.d)
+    def splitMidNode(treeNode: RTree):
+        newNode = RTree(treeNode.n, treeNode.d)
         childrenLen = len(treeNode.children)
         fullPool = treeNode.children
         # order child tree by mbr
@@ -138,13 +140,14 @@ class RTree:
         return treeNode, newNode
 
     @staticmethod
-    def chooseLeaf(point, treeNode:RTree) -> RTree:
+    def chooseLeaf(point, treeNode: RTree) -> RTree:
         if len(treeNode.children) > 0:
             # choose the child that keep the smallest size
             minIncreament = sys.float_info.max
             targetChild = treeNode
             for child in treeNode.children:
-                mbr = MBR(child.mbr.top,child.mbr.bottom,child.mbr.left,child.mbr.right)
+                mbr = MBR(child.mbr.top, child.mbr.bottom,
+                          child.mbr.left, child.mbr.right)
                 origin_size = (mbr.right-mbr.left)*(mbr.top-mbr.bottom)
                 x = point.index[0]
                 y = point.index[1]
@@ -157,11 +160,11 @@ class RTree:
                 if increment < minIncreament:
                     minIncreament = increment
                     targetChild = child
-            return RTree.chooseLeaf(point,targetChild)
+            return RTree.chooseLeaf(point, targetChild)
         return treeNode
 
     @staticmethod
-    def adjustTreeFromLeaf(leafNode:RTree, newLeafNode:RTree = None):
+    def adjustTreeFromLeaf(leafNode: RTree, newLeafNode: RTree = None):
         N = leafNode
         NN = newLeafNode
         while True:
@@ -192,7 +195,7 @@ class RTree:
                 NN = newParent
             N = parent
         if NN != None:
-            newRoot = RTree(N.n,N.d)
+            newRoot = RTree(N.n, N.d)
             newRoot.children.append(N)
             newRoot.children.append(NN)
             N.parent = newRoot
@@ -245,51 +248,123 @@ class RTree:
             return self.point_pool
         result = []
         for child in self.children:
-            if MBR.isIntersect(mbr,child.mbr):
+            if MBR.isIntersect(mbr, child.mbr):
                 result += child.getPointsByMBR(mbr)
         return result
 
-    def getPointsByCircle(self,point,radius):
+    def getPointsByCircle(self, point, radius):
         if len(self.children) == 0:
             return self.point_pool
         result = []
         for child in self.children:
-            if MBR.isIntersectByCircle(child.mbr,point,radius):
-                result += child.getPointsByCircle(point,radius)
+            if MBR.isIntersectByCircle(child.mbr, point, radius):
+                result += child.getPointsByCircle(point, radius)
         return result
 
+    def rule1(self, ABL, point):
+        prune_list = []
+        for i in range(len(ABL)):
+            prued = False
+            for j in range(len(ABL)):
+                if i == j: continue
+                if ABL[j]["mindist"] > ABL[i]["minmaxdist"]:
+                    prued = True
+                    break  # i is no longer qualified break
+            if not prued:
+                prune_list.append(ABL[i])
+        return prune_list
 
-    @staticmethod
-    def knnSearch(rtree, point, k):
-        points_num = rtree.numOfPoints()
-        main_mbr = rtree.mbr
+    def rule2(self, ABL, point):
+        return ABL
+
+    def rule3(self, ABL, point):
+        return ABL
+
+    def knnSearch(self, point, k):
+        points_num = self.numOfPoints()
+        main_mbr = self.mbr
+        scale_ratio = (k/points_num) ** 0.5
+        radius = ((main_mbr.right - main_mbr.left) * (main_mbr.top -
+                  main_mbr.bottom) * scale_ratio / math.pi) ** 0.5
         search_range_record = []
+        search_range_record.append(radius)
+
+        result = []
+        while len(result) < k:
+            result = []
+            ABL = [
+                {
+                    "tree": self,
+                    "mindist": 0,
+                    "minmaxdist": 0
+                }
+            ]  # point must be in the root
+            while len(ABL) > 0:
+                obj = ABL.pop()
+                tree = obj["tree"]
+                if len(tree.children) > 0:
+                    newBranchs = []
+                    for child in tree.children:
+                        if MBR.isIntersectByCircle(child.mbr, point, radius):
+                            newBranchs.append(child)
+                    # sort by mindist
+                    newBranchs = sorted(
+                        newBranchs, key=lambda kv: -MBR.getMindist(kv.mbr, point))
+                    # append into stack
+                    for newBranch in newBranchs:
+                        newMinDist = MBR.getMindist(newBranch.mbr, point)
+                        newMinMaxDist = MBR.getMinMaxDist(newBranch.mbr, point)
+                        ABL.append(
+                            {
+                                "tree": newBranch,
+                                "mindist": newMinDist,
+                                "minmaxdist": newMinMaxDist
+                            }
+                        )
+                else:
+                    # if it is leafnode, use point pool to update result
+                    for pool_point in tree.point_pool:
+                        if Point.distance(point, pool_point) <= radius:
+                            if len(result) == 0:
+                                result.append(pool_point)
+                                continue
+                            for i in range(len(result)):
+                                if Point.distance(point, result[i]) < Point.distance(point, pool_point):
+                                    continue
+                                result.insert(i, pool_point)
+                                break
+                    while len(result) > k:
+                        result.pop()
+                ABL = self.rule1(ABL, point)
+            if len(result) < k:
+                radius *= 2
+                search_range_record.append(radius)
+
+        return result, search_range_record
+
         # TODO: check if k > points num
         # TODO: check if point is in mbr
         # generate query range
-        scale_ratio = (k/points_num) ** 0.5
-        radius = ((main_mbr.right - main_mbr.left) *(main_mbr.top - main_mbr.bottom) * scale_ratio / math.pi ) ** 0.5
-        search_range_record.append(radius)
         # get points by search mbr
-        while True:
-            scan_set = rtree.getPointsByCircle(point,radius)
-            # if points num is enough, get first k points
-            result_set = {}
-            for target_point in scan_set:
-                dist = Point.distance(point, target_point)
-                if  dist <= radius:
-                    if len(result_set) <= k:
-                        result_set[target_point] = dist
-                    else :
-                    # sort result set
-                        sort_result = sorted(result_set.items(), key = lambda kv:kv[1])
-                        max_point = sort_result.pop()
-                        if max_point[1] > dist:
-                            result_set.pop(max_point[0])
-                            result_set[target_point] = dist
-            # if points num is not enough, expand range
-            if len(result_set) < k:
-                radius *= 2
-                search_range_record.append(radius)
-                continue
-            return list(result_set.keys()), search_range_record
+        # while True:
+        #     scan_set = rtree.getPointsByCircle(point,radius)
+        #     # if points num is enough, get first k points
+        #     result_set = {}
+        #     for target_point in scan_set:
+        #         dist = Point.distance(point, target_point)
+        #         if  dist <= radius:
+        #             if len(result_set) <= k:
+        #                 result_set[target_point] = dist
+        #             else :
+        #             # sort result set
+        #                 sort_result = sorted(result_set.items(), key = lambda kv:kv[1])
+        #                 max_point = sort_result.pop()
+        #                 if max_point[1] > dist:
+        #                     result_set.pop(max_point[0])
+        #                     result_set[target_point] = dist
+        #     # if points num is not enough, expand range
+        #     if len(result_set) < k:
+        #         radius *= 2
+        #         search_range_record.append(radius)
+        #         continue
+        #     return list(result_set.keys()), search_range_record

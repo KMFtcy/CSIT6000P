@@ -33,7 +33,7 @@ def main(argv):
     x_cor = []
     y_cor = []
     # load data
-    for row in poi_dataset_lines:
+    for row in poi_dataset_lines[:10000]:
         x, y = row.split(',')
         x = float(x)
         y = float(y)
@@ -50,24 +50,28 @@ def main(argv):
     print(rt.height())
     print(rt.numOfNonLeaf())
     print(rt.numOfLeaf())
-    print(rt.numOfPoints(), len(poi_dataset))
     mbr = rt.mbr
-    x_low = mbr.left + random.random() * (mbr.right - mbr.left)
-    y_low = mbr.bottom + random.random() * (mbr.top - mbr.bottom)
-    k = 10
-    target_point = Point(index = [x_low,y_low])
-    # target_point = Point(index = [115.7,40.7])
-    # search
-    print("target point: [", target_point.index[0], ",",target_point.index[1],"]")
-    T1 = time.perf_counter()
-    knn_tree_result, search_range_record = RTree.knnSearch(rt,target_point,k)
-    T2 =time.perf_counter()
-    print('tree running time: %sms' % ((T2 - T1)*1000))
-    T3 =time.perf_counter()
-    knn_exhuastive_result = exhaustiveSearch(target_point,k,poi_dataset)
-    T4 =time.perf_counter()
-    print('exhaustive running time: %sms' % ((T4 - T3)*1000))
-    drawResultPoint(target_point,knn_tree_result,knn_exhuastive_result)
+    k = 5
+    fail_count = 0
+    query_times = 10
+    for i in range(query_times):
+        x_low = mbr.left + random.random() * (mbr.right - mbr.left)
+        y_low = mbr.bottom + random.random() * (mbr.top - mbr.bottom)
+        target_point = Point(index = [x_low,y_low])
+        # search
+        print("target point: [", target_point.index[0], ",",target_point.index[1],"]")
+        T1 = time.perf_counter()
+        knn_tree_result, search_range_record = rt.knnSearch(target_point,k)
+        T2 =time.perf_counter()
+        print('tree running time: %sms' % ((T2 - T1)*1000))
+        T3 =time.perf_counter()
+        knn_exhuastive_result = exhaustiveSearch(target_point,k,poi_dataset)
+        T4 =time.perf_counter()
+        print('exhaustive running time: %sms' % ((T4 - T3)*1000))
+        isPass = drawResultPoint(target_point,knn_tree_result,knn_exhuastive_result)
+        if not isPass:
+            fail_count += 1
+    print("fail times:",fail_count, "; fail ratio: ",fail_count/query_times)
 
     # printTree(rt,0)
     print("draw plot")
@@ -122,11 +126,11 @@ def exhaustiveSearch(point,k, dataset):
     result_set = {}
     for target_point in dataset:
         dist = Point.distance(point, target_point)
-        if len(result_set) <= k:
+        if len(result_set) < k:
             result_set[target_point] = dist
         else:
         # sort result set
-            sort_result = sorted(result_set.items(), key = lambda kv:(kv[1], kv[0]))
+            sort_result = sorted(result_set.items(), key = lambda kv:kv[1])
             max_point = sort_result.pop()
             if max_point[1] > dist:
                 result_set.pop(max_point[0])
@@ -134,6 +138,8 @@ def exhaustiveSearch(point,k, dataset):
     return list(result_set.keys())
 
 def drawResultPoint(target_point,treeResult, exhaustiveResult):
+    treeResult = sorted(treeResult, key= lambda kv:kv.index[0])
+    exhaustiveResult = sorted(exhaustiveResult, key= lambda kv:kv.index[0])
     print("result from tree:")
     treeResult_x = []
     treeResult_y = []
@@ -143,11 +149,6 @@ def drawResultPoint(target_point,treeResult, exhaustiveResult):
         print("- " + "[", point.index[0], ",",point.index[1],"]: " + str(Point.distance(point,target_point)))
         treeResult_x.append(point.index[0])
         treeResult_y.append(point.index[1])
-    print("result from exhaustive search:")
-    for point in exhaustiveResult:
-        print("- " + "[", point.index[0], ",",point.index[1],"]: " + str(Point.distance(point,target_point)))
-        ehsResult_x.append(point.index[0])
-        ehsResult_y.append(point.index[1])
     plt.scatter(treeResult_x, treeResult_y, c ="red",
             linewidths = 1,
             marker ="s",
@@ -156,6 +157,15 @@ def drawResultPoint(target_point,treeResult, exhaustiveResult):
             linewidths = 1,
             marker ="s",
             s = 30)
+    print("result from exhaustive search:")
+    for point in exhaustiveResult:
+        print("- " + "[", point.index[0], ",",point.index[1],"]: " + str(Point.distance(point,target_point)))
+        ehsResult_x.append(point.index[0])
+        ehsResult_y.append(point.index[1])
+    for i in range(len(treeResult)):
+        if treeResult[i] != exhaustiveResult[i]:
+            return False
+    return True
 
 
 if __name__=="__main__":
