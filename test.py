@@ -1,18 +1,17 @@
 '''
 Date: 2022-04-26 09:04:38
 LastEditors: Chaoyang.Tang
-LastEditTime: 2022-04-27 16:06:39
+LastEditTime: 2022-04-27 17:46:56
 FilePath: /CSIT6000P/test.py
 '''
 from model.MBR import MBR
 from model.Point import Point
 
-point1 = Point(index=[0,0])
-point2 = Point(index=[3,4])
-print(Point.distance(point1,point2))
-
 target = [1,3,5]
 test = [2,3,5,6,7,8,9,10]
+test.pop()
+
+print(test)
 
 m = 1
 for i in range(len(test)):

@@ -266,7 +266,8 @@ class RTree:
         for i in range(len(ABL)):
             prued = False
             for j in range(len(ABL)):
-                if i == j: continue
+                if i == j:
+                    continue
                 if ABL[j]["mindist"] > ABL[i]["minmaxdist"]:
                     prued = True
                     break  # i is no longer qualified break
@@ -274,23 +275,19 @@ class RTree:
                 prune_list.append(ABL[i])
         return prune_list
 
-    def rule2(self, ABL,result, point,k):
-        if len(result) < k:
-            return result
-        result_point = result[k-1]
-        prued = False
+    def rule2(self, ABL, result, point):
+        result_point = result[-1]
         for obj in ABL:
             if Point.distance(point, result_point) > obj["minmaxdist"]:
-                # print("hahahhaha")
-                # print(Point.distance(point, result_point))
-                # print(obj["minmaxdist"])
-                prued = True
+                result.pop()
                 break
-        if prued:
-            result.pop()
         return result
 
-    def rule3(self, ABL, point):
+    def rule3(self, ABL, result, point):
+        result_point = result[-1]
+        for obj in ABL:
+            if Point.distance(point, result_point) < obj["mindist"]:
+                ABL.remove(obj)
         return ABL
 
     def knnSearch(self, point, k):
@@ -338,45 +335,20 @@ class RTree:
                     # if it is leafnode, use point pool to update result
                     for pool_point in tree.point_pool:
                         if Point.distance(point, pool_point) <= radius:
-                                result.append(pool_point)
-                                i = len(result) - 1
-                                while i > 0 and Point.distance(point, pool_point) < Point.distance(point, result[i-1]):
-                                        result[i] = result[i-1]
-                                        i -= 1
-                                result[i] = pool_point
+                            result.append(pool_point)
+                            i = len(result) - 1
+                            while i > 0 and Point.distance(point, pool_point) < Point.distance(point, result[i-1]):
+                                result[i] = result[i-1]
+                                i -= 1
+                            result[i] = pool_point
                     while len(result) > k:
                         result.pop()
-                # ABL = self.rule1(ABL, point)
-                # result = self.rule2(ABL,result,point,k)
+                if len(result) == k:
+                    ABL = self.rule1(ABL, point)
+                    result = self.rule2(ABL, result, point)
+                    ABL = self.rule3(ABL, result, point)
             if len(result) < k:
                 radius *= 2
                 search_range_record.append(radius)
 
         return result, search_range_record
-
-        # TODO: check if k > points num
-        # TODO: check if point is in mbr
-        # generate query range
-        # get points by search mbr
-        # while True:
-        #     scan_set = rtree.getPointsByCircle(point,radius)
-        #     # if points num is enough, get first k points
-        #     result_set = {}
-        #     for target_point in scan_set:
-        #         dist = Point.distance(point, target_point)
-        #         if  dist <= radius:
-        #             if len(result_set) <= k:
-        #                 result_set[target_point] = dist
-        #             else :
-        #             # sort result set
-        #                 sort_result = sorted(result_set.items(), key = lambda kv:kv[1])
-        #                 max_point = sort_result.pop()
-        #                 if max_point[1] > dist:
-        #                     result_set.pop(max_point[0])
-        #                     result_set[target_point] = dist
-        #     # if points num is not enough, expand range
-        #     if len(result_set) < k:
-        #         radius *= 2
-        #         search_range_record.append(radius)
-        #         continue
-        #     return list(result_set.keys()), search_range_record

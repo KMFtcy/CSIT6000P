@@ -12,8 +12,9 @@ import time
 poi_dataset_lines = load_dataset.load()
 poi_dataset = []
 
-n = 64
+n = 256
 d = 8
+query_times = 30
 
 
 def main(argv):
@@ -33,7 +34,7 @@ def main(argv):
     x_cor = []
     y_cor = []
     # load data
-    for row in poi_dataset_lines[:10000]:
+    for row in poi_dataset_lines:
         x, y = row.split(',')
         x = float(x)
         y = float(y)
@@ -53,7 +54,6 @@ def main(argv):
     mbr = rt.mbr
     k = 5
     fail_count = 0
-    query_times = 200
     for i in range(query_times):
         x_low = mbr.left + random.random() * (mbr.right - mbr.left)
         y_low = mbr.bottom + random.random() * (mbr.top - mbr.bottom)
