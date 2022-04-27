@@ -2,6 +2,7 @@ from .MBR import MBR
 from .Point import Point
 from . import RTree
 import sys
+import math
 
 class RTree:
 
@@ -248,77 +249,47 @@ class RTree:
                 result += child.getPointsByMBR(mbr)
         return result
 
+    def getPointsByCircle(self,point,radius):
+        if len(self.children) == 0:
+            return self.point_pool
+        result = []
+        for child in self.children:
+            if MBR.isIntersectByCircle(child.mbr,point,radius):
+                result += child.getPointsByCircle(point,radius)
+        return result
+
 
     @staticmethod
     def knnSearch(rtree, point, k):
         points_num = rtree.numOfPoints()
         main_mbr = rtree.mbr
-        search_mbr_record = []
+        search_range_record = []
         # TODO: check if k > points num
         # TODO: check if point is in mbr
         # generate query range
         scale_ratio = (k/points_num) ** 0.5
-        search_width = (main_mbr.right - main_mbr.left) * scale_ratio
-        search_height = (main_mbr.top - main_mbr.bottom) * scale_ratio
-        top = point.index[1] + search_height/2
-        if top > main_mbr.top:
-            top = main_mbr.top
-        bottom = point.index[1] - search_height/2
-        if bottom < main_mbr.bottom:
-            bottom = main_mbr.bottom
-        left = point.index[0] - search_width/2
-        if left < main_mbr.left:
-            left = main_mbr.left
-        right = point.index[0] + search_width/2
-        if right > main_mbr.right:
-            right = main_mbr.right
-        search_mbr = MBR(
-            top = top,
-            bottom= bottom,
-            left=left,
-            right= right,
-        )
-        search_mbr_record.append(search_mbr)
+        radius = ((main_mbr.right - main_mbr.left) *(main_mbr.top - main_mbr.bottom) * scale_ratio / math.pi ) ** 0.5
+        search_range_record.append(radius)
         # get points by search mbr
         while True:
-            scan_set = rtree.getPointsByMBR(search_mbr)
-            # if points num is not enough, expand range
-            if len(scan_set) < k:
-                search_width *= 2
-                search_height *= 2
-                top = point.index[1] + search_height/2
-                if top > main_mbr.top:
-                    top = main_mbr.top
-                bottom = point.index[1] - search_height/2
-                if bottom < main_mbr.bottom:
-                    bottom = main_mbr.bottom
-                left = point.index[0] - search_width/2
-                if left < main_mbr.left:
-                    left = main_mbr.left
-                right = point.index[0] + search_width/2
-                if right > main_mbr.right:
-                    right = main_mbr.right
-                search_mbr = MBR(
-                    top = top,
-                    bottom= bottom,
-                    left=left,
-                    right= right,
-                )
-                search_mbr_record.append(search_mbr)
-                continue
+            scan_set = rtree.getPointsByCircle(point,radius)
             # if points num is enough, get first k points
-            if len(scan_set) == k:
-                return scan_set
             result_set = {}
             for target_point in scan_set:
                 dist = Point.distance(point, target_point)
-                if len(result_set) <= k:
-                    result_set[target_point] = dist
-                else:
-                # sort result set
-                    sort_result = sorted(result_set.items(), key = lambda kv:kv[1])
-                    max_point = sort_result.pop()
-                    if max_point[1] > dist:
-                        result_set.pop(max_point[0])
+                if  dist <= radius:
+                    if len(result_set) <= k:
                         result_set[target_point] = dist
-            return list(result_set.keys()), search_mbr_record
+                    else :
+                    # sort result set
+                        sort_result = sorted(result_set.items(), key = lambda kv:kv[1])
+                        max_point = sort_result.pop()
+                        if max_point[1] > dist:
+                            result_set.pop(max_point[0])
+                            result_set[target_point] = dist
+            # if points num is not enough, expand range
+            if len(result_set) < k:
+                radius *= 2
+                search_range_record.append(radius)
+                continue
+            return list(result_set.keys()), search_range_record

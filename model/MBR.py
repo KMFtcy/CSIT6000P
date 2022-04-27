@@ -34,6 +34,11 @@ class MBR:
         return not ((newLeft > newRight) or (newBottom > newTop))
 
     @staticmethod
+    def isIntersectByCircle(mbr: MBR, centre:Point, radius):
+        dist = MBR.getMindist(mbr,centre)
+        return dist < radius
+
+    @staticmethod
     def getMindist(mbr: MBR, point: Point):
         x = point.index[0]
         y = point.index[1]

@@ -32,7 +32,7 @@ def main(argv):
     x_cor = []
     y_cor = []
     # load data
-    for row in poi_dataset_lines[:10000]:
+    for row in poi_dataset_lines:
         x, y = row.split(',')
         x = float(x)
         y = float(y)
@@ -53,12 +53,12 @@ def main(argv):
     mbr = rt.mbr
     x_low = mbr.left + random.random() * (mbr.right - mbr.left)
     y_low = mbr.bottom + random.random() * (mbr.top - mbr.bottom)
-    k = 5
+    k = 10
     target_point = Point(index = [x_low,y_low])
     # target_point = Point(index = [115.7,40.7])
     # search
     print("target point: [", target_point.index[0], ",",target_point.index[1],"]")
-    knn_tree_result, search_mbr_record = RTree.knnSearch(rt,target_point,k)
+    knn_tree_result, search_range_record = RTree.knnSearch(rt,target_point,k)
     knn_exhuastive_result = exhaustiveSearch(target_point,k,poi_dataset)
     drawResultPoint(target_point,knn_tree_result,knn_exhuastive_result)
 
@@ -74,33 +74,32 @@ def main(argv):
     # Get the current reference
     ax = plt.gca()
     # Create a Rectangle patch
-    from matplotlib.patches import Rectangle
-    temp_queue = queue.Queue()
-    temp_queue.put(rt)
-    while not temp_queue.empty():
-        tree = temp_queue.get()
-        if len(tree.children) > 0:
-            for child in tree.children:
-                temp_queue.put(child)
-            the_mbr = tree.mbr
-            # tree region rectangle
-            rect = Rectangle(
-                (the_mbr.left,the_mbr.bottom),
-                the_mbr.right-the_mbr.left,
-                the_mbr.top-the_mbr.bottom,
-                linewidth=1,edgecolor='r',facecolor='none')
-            ax.add_patch(rect)
-            plt.savefig('../test2.jpg')
+    # from matplotlib.patches import Rectangle
+    # temp_queue = queue.Queue()
+    # temp_queue.put(rt)
+    # while not temp_queue.empty():
+    #     tree = temp_queue.get()
+    #     if len(tree.children) > 0:
+    #         for child in tree.children:
+    #             temp_queue.put(child)
+    #         the_mbr = tree.mbr
+    #         # tree region rectangle
+    #         rect = Rectangle(
+    #             (the_mbr.left,the_mbr.bottom),
+    #             the_mbr.right-the_mbr.left,
+    #             the_mbr.top-the_mbr.bottom,
+    #             linewidth=1,edgecolor='r',facecolor='none')
+    #         ax.add_patch(rect)
+    #         plt.savefig('../test2.jpg')
             # input("press any button")
     # draw seach range
     print("draw search range")
-    for i in range(len(search_mbr_record)):
-        rect = Rectangle(
-            (search_mbr_record[i].left,search_mbr_record[i].bottom),
-            search_mbr_record[i].right-search_mbr_record[i].left,
-            search_mbr_record[i].top-search_mbr_record[i].bottom,
-            linewidth=1,edgecolor='b',facecolor='none')
-        ax.add_patch(rect)
+    for i in range(len(search_range_record)):
+        circle = plt.Circle(
+            (target_point.index[0], target_point.index[1]),
+            search_range_record[i],
+            color='r', fill=False)
+        ax.add_patch(circle)
         plt.savefig('../test2.jpg')
         input("press any button")
 
