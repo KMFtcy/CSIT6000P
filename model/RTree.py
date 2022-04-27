@@ -274,8 +274,21 @@ class RTree:
                 prune_list.append(ABL[i])
         return prune_list
 
-    def rule2(self, ABL, point):
-        return ABL
+    def rule2(self, ABL,result, point,k):
+        if len(result) < k:
+            return result
+        result_point = result[k-1]
+        prued = False
+        for obj in ABL:
+            if Point.distance(point, result_point) > obj["minmaxdist"]:
+                # print("hahahhaha")
+                # print(Point.distance(point, result_point))
+                # print(obj["minmaxdist"])
+                prued = True
+                break
+        if prued:
+            result.pop()
+        return result
 
     def rule3(self, ABL, point):
         return ABL
@@ -325,17 +338,16 @@ class RTree:
                     # if it is leafnode, use point pool to update result
                     for pool_point in tree.point_pool:
                         if Point.distance(point, pool_point) <= radius:
-                            if len(result) == 0:
                                 result.append(pool_point)
-                                continue
-                            for i in range(len(result)):
-                                if Point.distance(point, result[i]) < Point.distance(point, pool_point):
-                                    continue
-                                result.insert(i, pool_point)
-                                break
+                                i = len(result) - 1
+                                while i > 0 and Point.distance(point, pool_point) < Point.distance(point, result[i-1]):
+                                        result[i] = result[i-1]
+                                        i -= 1
+                                result[i] = pool_point
                     while len(result) > k:
                         result.pop()
-                ABL = self.rule1(ABL, point)
+                # ABL = self.rule1(ABL, point)
+                # result = self.rule2(ABL,result,point,k)
             if len(result) < k:
                 radius *= 2
                 search_range_record.append(radius)

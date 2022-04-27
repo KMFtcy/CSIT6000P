@@ -53,7 +53,7 @@ def main(argv):
     mbr = rt.mbr
     k = 5
     fail_count = 0
-    query_times = 10
+    query_times = 200
     for i in range(query_times):
         x_low = mbr.left + random.random() * (mbr.right - mbr.left)
         y_low = mbr.bottom + random.random() * (mbr.top - mbr.bottom)
