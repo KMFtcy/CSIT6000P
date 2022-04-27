@@ -16,3 +16,10 @@ class Point:
             distance += pow(index1[i]-index2[i],2)
         distance = distance ** 0.5
         return distance
+
+    # def __repr__(self):
+    #     result = "["
+    #     for index in self.index:
+    #         result += index + ","
+    #     result += "]"
+    #     return result

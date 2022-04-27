@@ -1,4 +1,5 @@
 from . import MBR
+from . import Point
 
 
 class MBR:
@@ -31,3 +32,29 @@ class MBR:
         newRight = min(mbr1.right, mbr2.right)
         newTop = min(mbr1.top, mbr2.top)
         return not ((newLeft > newRight) or (newBottom > newTop))
+
+    @staticmethod
+    def getMindist(mbr: MBR, point: Point):
+        x = point.index[0]
+        y = point.index[1]
+        top = mbr.top
+        bottom = mbr.bottom
+        left = mbr.left
+        right = mbr.right
+        if left > x and y > top:
+            return ((x-left) ** 2 + (y-top) ** 2) ** 0.5
+        if right < x and y > top:
+            return ((x-right) ** 2 + (y-top) ** 2) ** 0.5
+        if right > x and y < bottom:
+            return ((x-right) ** 2 + (y-bottom) ** 2) ** 0.5
+        if left > x and y < bottom:
+            return ((x-left) ** 2 + (y-bottom) ** 2) ** 0.5
+        if left < x and y > top and x < right:
+            return y - top
+        if left < x and y < bottom and x < right:
+            return bottom -y
+        if left > x and y < top and y > bottom:
+            return left - x
+        if right < x and y < top and y > bottom:
+            return x - right
+        return 0

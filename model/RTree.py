@@ -140,19 +140,21 @@ class RTree:
     def chooseLeaf(point, treeNode:RTree) -> RTree:
         if len(treeNode.children) > 0:
             # choose the child that keep the smallest size
-            minSize = sys.float_info.max
+            minIncreament = sys.float_info.max
             targetChild = treeNode
             for child in treeNode.children:
                 mbr = MBR(child.mbr.top,child.mbr.bottom,child.mbr.left,child.mbr.right)
+                origin_size = (mbr.right-mbr.left)*(mbr.top-mbr.bottom)
                 x = point.index[0]
                 y = point.index[1]
                 mbr.left = x if x < mbr.left else mbr.left
                 mbr.right = x if x > mbr.right else mbr.right
                 mbr.top = y if y > mbr.top else mbr.top
                 mbr.bottom = y if y < mbr.bottom else mbr.bottom
-                mbr_size = (mbr.right-mbr.left)*(mbr.top-mbr.bottom)
-                if mbr_size < minSize:
-                    minSize = mbr_size
+                new_size = (mbr.right-mbr.left)*(mbr.top-mbr.bottom)
+                increment = new_size-origin_size
+                if increment < minIncreament:
+                    minIncreament = increment
                     targetChild = child
             return RTree.chooseLeaf(point,targetChild)
         return treeNode
@@ -237,8 +239,86 @@ class RTree:
             count += child.numOfPoints()
         return count
 
+    def getPointsByMBR(self, mbr):
+        if len(self.children) == 0:
+            return self.point_pool
+        result = []
+        for child in self.children:
+            if MBR.isIntersect(mbr,child.mbr):
+                result += child.getPointsByMBR(mbr)
+        return result
+
 
     @staticmethod
     def knnSearch(rtree, point, k):
-        print()
-    # if rtree.subTree != None:
+        points_num = rtree.numOfPoints()
+        main_mbr = rtree.mbr
+        search_mbr_record = []
+        # TODO: check if k > points num
+        # TODO: check if point is in mbr
+        # generate query range
+        scale_ratio = (k/points_num) ** 0.5
+        search_width = (main_mbr.right - main_mbr.left) * scale_ratio
+        search_height = (main_mbr.top - main_mbr.bottom) * scale_ratio
+        top = point.index[1] + search_height/2
+        if top > main_mbr.top:
+            top = main_mbr.top
+        bottom = point.index[1] - search_height/2
+        if bottom < main_mbr.bottom:
+            bottom = main_mbr.bottom
+        left = point.index[0] - search_width/2
+        if left < main_mbr.left:
+            left = main_mbr.left
+        right = point.index[0] + search_width/2
+        if right > main_mbr.right:
+            right = main_mbr.right
+        search_mbr = MBR(
+            top = top,
+            bottom= bottom,
+            left=left,
+            right= right,
+        )
+        search_mbr_record.append(search_mbr)
+        # get points by search mbr
+        while True:
+            scan_set = rtree.getPointsByMBR(search_mbr)
+            # if points num is not enough, expand range
+            if len(scan_set) < k:
+                search_width *= 2
+                search_height *= 2
+                top = point.index[1] + search_height/2
+                if top > main_mbr.top:
+                    top = main_mbr.top
+                bottom = point.index[1] - search_height/2
+                if bottom < main_mbr.bottom:
+                    bottom = main_mbr.bottom
+                left = point.index[0] - search_width/2
+                if left < main_mbr.left:
+                    left = main_mbr.left
+                right = point.index[0] + search_width/2
+                if right > main_mbr.right:
+                    right = main_mbr.right
+                search_mbr = MBR(
+                    top = top,
+                    bottom= bottom,
+                    left=left,
+                    right= right,
+                )
+                search_mbr_record.append(search_mbr)
+                continue
+            # if points num is enough, get first k points
+            if len(scan_set) == k:
+                return scan_set
+            result_set = {}
+            for target_point in scan_set:
+                dist = Point.distance(point, target_point)
+                if len(result_set) <= k:
+                    result_set[target_point] = dist
+                else:
+                # sort result set
+                    sort_result = sorted(result_set.items(), key = lambda kv:kv[1])
+                    max_point = sort_result.pop()
+                    if max_point[1] > dist:
+                        result_set.pop(max_point[0])
+                        result_set[target_point] = dist
+            return list(result_set.keys()), search_mbr_record
