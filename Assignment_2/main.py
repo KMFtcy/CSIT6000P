@@ -7,6 +7,7 @@ import random
 import matplotlib.pyplot as plt
 import os
 import queue
+import time
 
 poi_dataset_lines = load_dataset.load()
 poi_dataset = []
@@ -58,8 +59,14 @@ def main(argv):
     # target_point = Point(index = [115.7,40.7])
     # search
     print("target point: [", target_point.index[0], ",",target_point.index[1],"]")
+    T1 = time.perf_counter()
     knn_tree_result, search_range_record = RTree.knnSearch(rt,target_point,k)
+    T2 =time.perf_counter()
+    print('tree running time: %sms' % ((T2 - T1)*1000))
+    T3 =time.perf_counter()
     knn_exhuastive_result = exhaustiveSearch(target_point,k,poi_dataset)
+    T4 =time.perf_counter()
+    print('exhaustive running time: %sms' % ((T4 - T3)*1000))
     drawResultPoint(target_point,knn_tree_result,knn_exhuastive_result)
 
     # printTree(rt,0)
