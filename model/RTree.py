@@ -213,6 +213,31 @@ class RTree:
                 height = sub_height
         return sub_height + 1
 
+    def numOfNonLeaf(self):
+        if len(self.children) == 0:
+            return 0
+        count = 0
+        for child in self.children:
+            count += child.numOfNonLeaf()
+        return count + 1
+
+    def numOfLeaf(self):
+        if len(self.children) == 0:
+            return 1
+        count = 0
+        for child in self.children:
+            count += child.numOfLeaf()
+        return count
+
+    def numOfPoints(self):
+        if len(self.children) == 0:
+            return len(self.point_pool)
+        count = 0
+        for child in self.children:
+            count += child.numOfPoints()
+        return count
+
+
     @staticmethod
     def knnSearch(rtree, point, k):
         print()

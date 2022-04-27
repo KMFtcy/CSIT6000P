@@ -38,6 +38,9 @@ def main(argv):
         rt = rt.insert(point)
     print("Data load complete")
     print(rt.height())
+    print(rt.numOfNonLeaf())
+    print(rt.numOfLeaf())
+    print(rt.numOfPoints(), len(poi_dataset))
 
 
 def printTree(node, blk):
