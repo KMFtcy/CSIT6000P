@@ -14,7 +14,7 @@ poi_dataset = []
 
 n = 256
 d = 8
-query_times = 300
+query_times = 30
 
 
 def main(argv):

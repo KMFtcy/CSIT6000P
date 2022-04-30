@@ -261,6 +261,17 @@ class RTree:
                 result += child.getPointsByCircle(point, radius)
         return result
 
+    def getFarthestPointIdx(self, target_point, result):
+        max_dist = 0
+        max_idx = 0
+        for idx in range(len(result)):
+            dist = Point.distance(result[idx], target_point)
+            if dist > max_dist:
+                max_dist = dist
+                max_idx = idx
+        return max_idx
+
+
     def rule1(self, ABL, point):
         finish = False
         while not finish:
@@ -278,7 +289,8 @@ class RTree:
         return ABL
 
     def rule2(self, ABL, result, point):
-        result_point = result[-1]
+        farthestPointIdx = self.getFarthestPointIdx(point,result)
+        result_point = result[farthestPointIdx]
         for obj in ABL:
             if Point.distance(point, result_point) > obj["minmaxdist"]:
                 result.pop()
@@ -286,7 +298,8 @@ class RTree:
         return result
 
     def rule3(self, ABL, result, point):
-        result_point = result[-1]
+        farthestPointIdx = self.getFarthestPointIdx(point,result)
+        result_point = result[farthestPointIdx]
         for obj in ABL:
             if Point.distance(point, result_point) < obj["mindist"]:
                 ABL.remove(obj)
@@ -378,7 +391,7 @@ class RTree:
                 if len(result) == k:
                     # ABL = self.rule1(ABL, point)
                     result = self.rule2(ABL, result, point)
-                    # ABL = self.rule3(ABL, result, point)
+                    ABL = self.rule3(ABL, result, point)
             if len(result) < k:
                 radius *= 2
                 search_range_record.append(radius)

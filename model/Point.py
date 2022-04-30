@@ -13,7 +13,7 @@ class Point:
             raise Exception("different dimensions points")
         distance = 0
         for i in range(len(index1)):
-            distance += pow(index1[i]-index2[i],2)
+            distance += (index1[i]-index2[i]) ** 2
         distance = distance ** 0.5
         return distance
 

@@ -51,21 +51,21 @@ class MBR:
         right = mbr.right
         if x <= left and y > top:
             return ((x-left) ** 2 + (y-top) ** 2) ** 0.5
-        if x > left and x <= right and y > top:
+        elif x > left and x <= right and y > top:
             return y - top
-        if x > right and y >= top:
+        elif x > right and y >= top:
             return ((x-right) ** 2 + (y-top) ** 2) ** 0.5
-        if x > right and y < top and y >= bottom:
+        elif x > right and y < top and y >= bottom:
             return x - right
-        if x >= right and y < bottom:
+        elif x >= right and y < bottom:
             return ((x-right) ** 2 + (y-bottom) ** 2) ** 0.5
-        if x >= left and x < right and y < bottom:
+        elif x >= left and x < right and y < bottom:
             return bottom - y
-        if x < left and y <= bottom:
+        elif x < left and y <= bottom:
             return ((x-left) ** 2 + (y-bottom) ** 2) ** 0.5
-        if x < left and y <= top and y > bottom:
+        elif x < left and y <= top and y > bottom:
             return left - x
-        return 0
+        else: return 0
 
     @staticmethod
     def getMinMaxDist(mbr: MBR, point: Point.Point):
