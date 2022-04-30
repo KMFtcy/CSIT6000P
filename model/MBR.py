@@ -34,8 +34,8 @@ class MBR:
         return not ((newLeft > newRight) or (newBottom > newTop))
 
     @staticmethod
-    def isIntersectByCircle(mbr: MBR, centre:Point.Point, radius):
-        dist = MBR.getMindist(mbr,centre)
+    def isIntersectByCircle(mbr: MBR, centre: Point.Point, radius):
+        dist = MBR.getMindist(mbr, centre)
         if dist > radius:
             return False
         else:
@@ -49,22 +49,22 @@ class MBR:
         bottom = mbr.bottom
         left = mbr.left
         right = mbr.right
-        if left > x and y > top:
+        if x <= left and y > top:
             return ((x-left) ** 2 + (y-top) ** 2) ** 0.5
-        if right < x and y > top:
-            return ((x-right) ** 2 + (y-top) ** 2) ** 0.5
-        if right > x and y < bottom:
-            return ((x-right) ** 2 + (y-bottom) ** 2) ** 0.5
-        if left > x and y < bottom:
-            return ((x-left) ** 2 + (y-bottom) ** 2) ** 0.5
-        if left < x and y > top and x < right:
+        if x > left and x <= right and y > top:
             return y - top
-        if left < x and y < bottom and x < right:
-            return bottom -y
-        if left > x and y < top and y > bottom:
-            return left - x
-        if right < x and y < top and y > bottom:
+        if x > right and y >= top:
+            return ((x-right) ** 2 + (y-top) ** 2) ** 0.5
+        if x > right and y < top and y >= bottom:
             return x - right
+        if x >= right and y < bottom:
+            return ((x-right) ** 2 + (y-bottom) ** 2) ** 0.5
+        if x >= left and x < right and y < bottom:
+            return bottom - y
+        if x < left and y <= bottom:
+            return ((x-left) ** 2 + (y-bottom) ** 2) ** 0.5
+        if x < left and y <= top and y > bottom:
+            return left - x
         return 0
 
     @staticmethod
@@ -78,13 +78,13 @@ class MBR:
         if left < x and x < right and bottom < y and y < top:
             return 0
         # TODO: 可能有坑，没有考虑点在mbr中情况
-        corner1 = Point.Point(index = [mbr.left, mbr.top])
-        corner2 = Point.Point(index = [mbr.left, mbr.bottom])
-        corner3 = Point.Point(index = [mbr.right, mbr.top])
-        corner4 = Point.Point(index = [mbr.right, mbr.bottom])
-        result = Point.Point.distance(point,corner1)
+        corner1 = Point.Point(index=[mbr.left, mbr.top])
+        corner2 = Point.Point(index=[mbr.left, mbr.bottom])
+        corner3 = Point.Point(index=[mbr.right, mbr.top])
+        corner4 = Point.Point(index=[mbr.right, mbr.bottom])
+        result = Point.Point.distance(point, corner1)
         for corner in [corner2, corner3, corner4]:
-            dist = Point.Point.distance(point,corner)
+            dist = Point.Point.distance(point, corner)
             if dist < result:
                 result = dist
         return result

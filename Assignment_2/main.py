@@ -14,7 +14,7 @@ poi_dataset = []
 
 n = 256
 d = 8
-query_times = 30
+query_times = 900
 
 
 def main(argv):
@@ -112,7 +112,7 @@ def main(argv):
             color='r', fill=False)
         ax.add_patch(circle)
         plt.savefig('../test2.jpg')
-        input("press any button")
+        # input("press any button")
 
 
 def printTree(node, blk):
@@ -145,6 +145,15 @@ def drawResultPoint(target_point,treeResult, exhaustiveResult):
     treeResult_y = []
     ehsResult_x = []
     ehsResult_y = []
+    # check if it is correct
+    isPass = True
+    for i in range(len(treeResult)):
+        if treeResult[i] != exhaustiveResult[i]:
+            isPass = False
+    if not isPass:
+        print("!!!!!!!!!!!!!!!!!!!")
+        print("no god please no")
+    # print result
     for point in treeResult:
         print("- " + "[", point.index[0], ",",point.index[1],"]: " + str(Point.distance(point,target_point)))
         treeResult_x.append(point.index[0])
@@ -162,10 +171,7 @@ def drawResultPoint(target_point,treeResult, exhaustiveResult):
         print("- " + "[", point.index[0], ",",point.index[1],"]: " + str(Point.distance(point,target_point)))
         ehsResult_x.append(point.index[0])
         ehsResult_y.append(point.index[1])
-    for i in range(len(treeResult)):
-        if treeResult[i] != exhaustiveResult[i]:
-            return False
-    return True
+    return isPass
 
 
 if __name__=="__main__":

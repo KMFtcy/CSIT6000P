@@ -262,18 +262,20 @@ class RTree:
         return result
 
     def rule1(self, ABL, point):
-        prune_list = []
-        for i in range(len(ABL)):
-            prued = False
-            for j in range(len(ABL)):
-                if i == j:
-                    continue
-                if ABL[j]["mindist"] > ABL[i]["minmaxdist"]:
-                    prued = True
-                    break  # i is no longer qualified break
-            if not prued:
-                prune_list.append(ABL[i])
-        return prune_list
+        finish = False
+        while not finish:
+            finish = True
+            for i in range(len(ABL)):
+                for j in range(len(ABL)):
+                    if i == j:
+                        continue
+                    if ABL[i]["mindist"] > ABL[j]["minmaxdist"]:
+                        finish = False
+                        ABL.pop(i)
+                        break
+                if not finish:
+                    break
+        return ABL
 
     def rule2(self, ABL, result, point):
         result_point = result[-1]
@@ -290,8 +292,36 @@ class RTree:
                 ABL.remove(obj)
         return ABL
 
+    # def knnSearch(self, point, k):
+    #     temp_queue = []
+    #     temp_queue.append(self)
+    #     result_set = {}
+
+    #     while len(temp_queue) > 0:
+    #         tree = temp_queue.pop()
+    #         if len(tree.children) > 0:
+    #             for child in tree.children:
+    #                 temp_queue.append(child)
+    #         else:
+    #             for target_point in tree.point_pool:
+    #                 dist = Point.distance(point, target_point)
+    #                 if len(result_set) < k:
+    #                     result_set[target_point] = dist
+    #                 else:
+    #                 # sort result set
+    #                     sort_result = sorted(result_set.items(), key = lambda kv:kv[1])
+    #                     max_point = sort_result.pop()
+    #                     if max_point[1] > dist:
+    #                         result_set.pop(max_point[0])
+    #                         result_set[target_point] = dist
+    #     return list(result_set.keys()), []
+
+
     def knnSearch(self, point, k):
         points_num = self.numOfPoints()
+        if k > points_num:
+            print("not support")
+            return [],[]
         main_mbr = self.mbr
         scale_ratio = (k/points_num) ** 0.5
         radius = ((main_mbr.right - main_mbr.left) * (main_mbr.top -
@@ -336,17 +366,19 @@ class RTree:
                     for pool_point in tree.point_pool:
                         if Point.distance(point, pool_point) <= radius:
                             result.append(pool_point)
-                            i = len(result) - 1
-                            while i > 0 and Point.distance(point, pool_point) < Point.distance(point, result[i-1]):
-                                result[i] = result[i-1]
-                                i -= 1
-                            result[i] = pool_point
                     while len(result) > k:
-                        result.pop()
-                if len(result) == k:
-                    ABL = self.rule1(ABL, point)
-                    result = self.rule2(ABL, result, point)
-                    ABL = self.rule3(ABL, result, point)
+                        max_dist = 0
+                        max_idx = 0
+                        for idx in range(len(result)):
+                            dist = Point.distance(result[idx], point)
+                            if dist > max_dist:
+                                max_dist = dist
+                                max_idx = idx
+                        result.pop(max_idx)
+                # if len(result) == k:
+                #     ABL = self.rule1(ABL, point)
+                #     result = self.rule2(ABL, result, point)
+                #     ABL = self.rule3(ABL, result, point)
             if len(result) < k:
                 radius *= 2
                 search_range_record.append(radius)
