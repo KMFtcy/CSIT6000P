@@ -14,7 +14,7 @@ poi_dataset = []
 
 n = 256
 d = 8
-query_times = 900
+query_times = 300
 
 
 def main(argv):
@@ -148,7 +148,7 @@ def drawResultPoint(target_point,treeResult, exhaustiveResult):
     # check if it is correct
     isPass = True
     for i in range(len(treeResult)):
-        if treeResult[i] != exhaustiveResult[i]:
+        if Point.distance(treeResult[i],target_point) != Point.distance(exhaustiveResult[i],target_point):
             isPass = False
     if not isPass:
         print("!!!!!!!!!!!!!!!!!!!")

@@ -375,10 +375,10 @@ class RTree:
                                 max_dist = dist
                                 max_idx = idx
                         result.pop(max_idx)
-                # if len(result) == k:
-                #     ABL = self.rule1(ABL, point)
-                #     result = self.rule2(ABL, result, point)
-                #     ABL = self.rule3(ABL, result, point)
+                if len(result) == k:
+                    # ABL = self.rule1(ABL, point)
+                    result = self.rule2(ABL, result, point)
+                    # ABL = self.rule3(ABL, result, point)
             if len(result) < k:
                 radius *= 2
                 search_range_record.append(radius)

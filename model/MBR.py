@@ -75,16 +75,26 @@ class MBR:
         bottom = mbr.bottom
         left = mbr.left
         right = mbr.right
-        if left < x and x < right and bottom < y and y < top:
-            return 0
         # TODO: 可能有坑，没有考虑点在mbr中情况
-        corner1 = Point.Point(index=[mbr.left, mbr.top])
-        corner2 = Point.Point(index=[mbr.left, mbr.bottom])
-        corner3 = Point.Point(index=[mbr.right, mbr.top])
-        corner4 = Point.Point(index=[mbr.right, mbr.bottom])
-        result = Point.Point.distance(point, corner1)
-        for corner in [corner2, corner3, corner4]:
-            dist = Point.Point.distance(point, corner)
-            if dist < result:
-                result = dist
+        leftTop = Point.Point(index=[left, top])
+        leftBottom = Point.Point(index=[left, bottom])
+        rightTop = Point.Point(index=[right, top])
+        rightBottom = Point.Point(index=[right, bottom])
+        max_s1 = max(
+            Point.Point.distance(point, leftTop),
+            Point.Point.distance(point, rightTop)
+        )
+        max_s2 = max(
+            Point.Point.distance(point, leftTop),
+            Point.Point.distance(point, leftBottom)
+        )
+        max_s3 = max(
+            Point.Point.distance(point, leftBottom),
+            Point.Point.distance(point, rightBottom)
+        )
+        max_s4 = max(
+            Point.Point.distance(point, rightTop),
+            Point.Point.distance(point, rightBottom)
+        )
+        result = max(max_s1, max_s2, max_s3, max_s4)
         return result
