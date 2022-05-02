@@ -172,14 +172,14 @@ class RTree:
             if N.parent == None:
                 break
             parent = N.parent
-            # 调整父结点条目的最小边界矩形
+            # adjust parent's mbr for child
             for child in parent.children:
                 childMBR = child.mbr
                 parent.mbr.left = childMBR.left if childMBR.left < parent.mbr.left else parent.mbr.left
                 parent.mbr.right = childMBR.right if childMBR.right > parent.mbr.right else parent.mbr.right
                 parent.mbr.top = childMBR.top if childMBR.top > parent.mbr.top else parent.mbr.top
                 parent.mbr.bottom = childMBR.bottom if childMBR.bottom < parent.mbr.bottom else parent.mbr.bottom
-            # 向上传递结点分裂
+            # pass split upforward
             if NN != None:
                 parent.children.append(NN)
                 NN.parent = parent
@@ -273,6 +273,7 @@ class RTree:
 
 
     def rule1(self, ABL, point):
+        pruned_count = 0
         finish = False
         while not finish:
             finish = True
@@ -283,64 +284,50 @@ class RTree:
                     if ABL[i]["mindist"] > ABL[j]["minmaxdist"]:
                         finish = False
                         ABL.pop(i)
+                        pruned_count += 1
                         break
                 if not finish:
                     break
-        return ABL
+        return ABL, pruned_count
 
     def rule2(self, ABL, result, point):
+        pruned_count = 0
         farthestPointIdx = self.getFarthestPointIdx(point,result)
         result_point = result[farthestPointIdx]
         for obj in ABL:
             if Point.distance(point, result_point) > obj["minmaxdist"]:
                 result.pop()
+                pruned_count += 1
                 break
-        return result
+        return result, pruned_count
 
     def rule3(self, ABL, result, point):
+        pruned_count = 0
         farthestPointIdx = self.getFarthestPointIdx(point,result)
         result_point = result[farthestPointIdx]
         for obj in ABL:
             if Point.distance(point, result_point) < obj["mindist"]:
+                pruned_count += 1
                 ABL.remove(obj)
-        return ABL
-
-    # def knnSearch(self, point, k):
-    #     temp_queue = []
-    #     temp_queue.append(self)
-    #     result_set = {}
-
-    #     while len(temp_queue) > 0:
-    #         tree = temp_queue.pop()
-    #         if len(tree.children) > 0:
-    #             for child in tree.children:
-    #                 temp_queue.append(child)
-    #         else:
-    #             for target_point in tree.point_pool:
-    #                 dist = Point.distance(point, target_point)
-    #                 if len(result_set) < k:
-    #                     result_set[target_point] = dist
-    #                 else:
-    #                 # sort result set
-    #                     sort_result = sorted(result_set.items(), key = lambda kv:kv[1])
-    #                     max_point = sort_result.pop()
-    #                     if max_point[1] > dist:
-    #                         result_set.pop(max_point[0])
-    #                         result_set[target_point] = dist
-    #     return list(result_set.keys()), []
-
+        return ABL, pruned_count
 
     def knnSearch(self, point, k):
         points_num = self.numOfPoints()
-        if k > points_num:
-            print("not support")
-            return [],[]
         main_mbr = self.mbr
         scale_ratio = (k/points_num) ** 0.5
         radius = ((main_mbr.right - main_mbr.left) * (main_mbr.top -
                   main_mbr.bottom) * scale_ratio / math.pi) ** 0.5
         search_range_record = []
         search_range_record.append(radius)
+        statis_struct = {}
+        statis_struct["rule1_pruned_count"] = 0
+        statis_struct["rule2_pruned_count"] = 0
+        statis_struct["rule3_pruned_count"] = 0
+        statis_struct["point_cal_distance"] = 0
+
+        if k > points_num:
+            print("not support")
+            return [],[]
 
         result = []
         while len(result) < k:
@@ -379,21 +366,29 @@ class RTree:
                     for pool_point in tree.point_pool:
                         if Point.distance(point, pool_point) <= radius:
                             result.append(pool_point)
+                            statis_struct["point_cal_distance"] += 1
                     while len(result) > k:
                         max_dist = 0
                         max_idx = 0
                         for idx in range(len(result)):
                             dist = Point.distance(result[idx], point)
+                            statis_struct["point_cal_distance"] += 1
                             if dist > max_dist:
                                 max_dist = dist
                                 max_idx = idx
                         result.pop(max_idx)
+                # pruned by rules
                 if len(result) == k:
-                    # ABL = self.rule1(ABL, point)
-                    result = self.rule2(ABL, result, point)
-                    ABL = self.rule3(ABL, result, point)
+                    ABL, rule1_pruned_count = self.rule1(ABL, point)
+                    result, rule2_pruned_count = self.rule2(ABL, result, point)
+                    ABL,rule3_pruned_count = self.rule3(ABL, result, point)
+                    # collect statistic
+                    statis_struct["rule1_pruned_count"] += rule1_pruned_count
+                    statis_struct["rule2_pruned_count"] += rule2_pruned_count
+                    statis_struct["rule3_pruned_count"] += rule3_pruned_count
+
             if len(result) < k:
                 radius *= 2
                 search_range_record.append(radius)
 
-        return result, search_range_record
+        return result, search_range_record, statis_struct

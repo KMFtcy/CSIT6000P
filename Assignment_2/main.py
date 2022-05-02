@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 import os
 import queue
 import time
+import statistics
 
 poi_dataset_lines = load_dataset.load()
 poi_dataset = []
@@ -30,9 +31,9 @@ def main(argv):
         elif opt in ("-d"):
             print(opt)
 
-    rt = RTree(n,d)
     x_cor = []
     y_cor = []
+    # === Task 1
     # load data
     for row in poi_dataset_lines:
         x, y = row.split(',')
@@ -43,37 +44,63 @@ def main(argv):
         node_index.append(y)
         point = Point(index = node_index)
         poi_dataset.append(point)
-        rt = rt.insert(point)
         # prepare plot
         x_cor.append(x)
         y_cor.append(y)
-    print("Data load complete")
-    print(rt.height())
-    print(rt.numOfNonLeaf())
-    print(rt.numOfLeaf())
+    for n in [64, 256]:
+        for d in [8,32]:
+            rt = RTree(n,d)
+            for point in poi_dataset:
+                rt = rt.insert(point)
+            print("=== R tree: n = %d, d = %d"%(n,d))
+            print("height:",rt.height())
+            print("number of non leaf node:",rt.numOfNonLeaf())
+            print("number of leaf node:",rt.numOfLeaf())
+    # Task 2
+    n = 256
+    d = 8
+    rt = RTree(n,d)
+    for point in poi_dataset:
+        rt = rt.insert(point)
     mbr = rt.mbr
     k = 5
-    fail_count = 0
+    running_time = 3
+    # do the 30 queries
+    print("=== Query")
     for i in range(query_times):
+        print("---")
+        print("%d query"%(i+1))
         x_low = mbr.left + random.random() * (mbr.right - mbr.left)
         y_low = mbr.bottom + random.random() * (mbr.top - mbr.bottom)
         target_point = Point(index = [x_low,y_low])
         # search
-        print("target point: [", target_point.index[0], ",",target_point.index[1],"]")
-        T1 = time.perf_counter()
-        knn_tree_result, search_range_record = rt.knnSearch(target_point,k)
-        T2 =time.perf_counter()
-        print('tree running time: %sms' % ((T2 - T1)*1000))
-        T3 =time.perf_counter()
-        knn_exhuastive_result = exhaustiveSearch(target_point,k,poi_dataset)
-        T4 =time.perf_counter()
-        print('exhaustive running time: %sms' % ((T4 - T3)*1000))
-        isPass = drawResultPoint(target_point,knn_tree_result,knn_exhuastive_result)
-        if not isPass:
-            fail_count += 1
-    print("fail times:",fail_count, "; fail ratio: ",fail_count/query_times)
+        tree_running_time = []
+        exhaustiveSearch_running_time = []
+        statis = {}
+        for j in range(running_time):
+            print("%d running"%(j+1))
+            T1 = time.perf_counter()
+            knn_tree_result, search_range_record, statis = rt.knnSearch(target_point,k)
+            T2 =time.perf_counter()
+            tree_running_time.append(T2 - T1)
+            T3 =time.perf_counter()
+            knn_exhuastive_result = exhaustiveSearch(target_point,k,poi_dataset)
+            T4 =time.perf_counter()
+            exhaustiveSearch_running_time.append(T4-T3)
+            isPass = drawResultPoint(target_point,knn_tree_result,knn_exhuastive_result)
+        print("=== RTree Statis")
+        print("- max running time:", max(tree_running_time))
+        print("- min running time:", min(tree_running_time))
+        print("- average running time:", statistics.mean(tree_running_time))
+        print('number of points calculated distance: %d' % (statis["point_cal_distance"]))
+        print('number of mbrs pruned by rule 1: %d' % (statis["rule1_pruned_count"]))
+        print('number of mbrs pruned by rule 2: %d' % (statis["rule2_pruned_count"]))
+        print('number of mbrs pruned by rule 3: %d' % (statis["rule3_pruned_count"]))
+        print("=== Exhaustive Search Statis")
+        print("- max running time:", max(exhaustiveSearch_running_time))
+        print("- min running time:", min(exhaustiveSearch_running_time))
+        print("- average running time:", statistics.mean(exhaustiveSearch_running_time))
 
-    # printTree(rt,0)
     print("draw plot")
     plt.scatter(x_cor,y_cor, s= 2)
     plt.scatter([target_point.index[0]], [target_point.index[1]],
@@ -112,7 +139,6 @@ def main(argv):
             color='r', fill=False)
         ax.add_patch(circle)
         plt.savefig('../test2.jpg')
-        # input("press any button")
 
 
 def printTree(node, blk):
