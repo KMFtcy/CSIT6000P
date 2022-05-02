@@ -35,27 +35,32 @@ def main(argv):
     y_cor = []
     # === Task 1
     # load data
-    for row in poi_dataset_lines:
-        x, y = row.split(',')
-        x = float(x)
-        y = float(y)
-        node_index = []
-        node_index.append(x)
-        node_index.append(y)
-        point = Point(index = node_index)
-        poi_dataset.append(point)
-        # prepare plot
-        x_cor.append(x)
-        y_cor.append(y)
-    for n in [64, 256]:
-        for d in [8,32]:
-            rt = RTree(n,d)
-            for point in poi_dataset:
-                rt = rt.insert(point)
-            print("=== R tree: n = %d, d = %d"%(n,d))
-            print("height:",rt.height())
-            print("number of non leaf node:",rt.numOfNonLeaf())
-            print("number of leaf node:",rt.numOfLeaf())
+    for dataset_len in [int(len(poi_dataset_lines)/2),len(poi_dataset_lines)]:
+        poi_dataset = []
+        print("Ddataset length:", dataset_len)
+        for i in range(dataset_len):
+            row = poi_dataset_lines[i]
+            x, y = row.split(',')
+            x = float(x)
+            y = float(y)
+            node_index = []
+            node_index.append(x)
+            node_index.append(y)
+            point = Point(index = node_index)
+            poi_dataset.append(point)
+            # prepare plot
+            x_cor.append(x)
+            y_cor.append(y)
+        for n in [64, 256]:
+            for d in [8,32]:
+                rt = RTree(n,d)
+                for point in poi_dataset:
+                    rt = rt.insert(point)
+                print("=== R tree: n = %d, d = %d"%(n,d))
+                print("height:",rt.height())
+                print("number of non leaf node:",rt.numOfNonLeaf())
+                print("number of leaf node:",rt.numOfLeaf())
+
     # Task 2
     n = 256
     d = 8
@@ -63,7 +68,7 @@ def main(argv):
     for point in poi_dataset:
         rt = rt.insert(point)
     mbr = rt.mbr
-    k = 5
+    k = 1
     running_time = 3
     # do the 30 queries
     print("=== Query")
@@ -103,12 +108,6 @@ def main(argv):
 
     print("draw plot")
     plt.scatter(x_cor,y_cor, s= 2)
-    plt.scatter([target_point.index[0]], [target_point.index[1]],
-        c ="yellow",
-        linewidths = 2,
-        marker ="^",
-        edgecolor ="red",
-        s = 50)
     # Get the current reference
     ax = plt.gca()
     # Create a Rectangle patch
@@ -120,6 +119,7 @@ def main(argv):
     #     if len(tree.children) > 0:
     #         for child in tree.children:
     #             temp_queue.put(child)
+    #     else:
     #         the_mbr = tree.mbr
     #         # tree region rectangle
     #         rect = Rectangle(
@@ -131,6 +131,12 @@ def main(argv):
     #         plt.savefig('../test2.jpg')
             # input("press any button")
     # draw seach range
+    plt.scatter([target_point.index[0]], [target_point.index[1]],
+        c ="yellow",
+        linewidths = 2,
+        marker ="^",
+        edgecolor ="red",
+        s = 50)
     print("draw search range")
     for i in range(len(search_range_record)):
         circle = plt.Circle(
@@ -184,14 +190,14 @@ def drawResultPoint(target_point,treeResult, exhaustiveResult):
         print("- " + "[", point.index[0], ",",point.index[1],"]: " + str(Point.distance(point,target_point)))
         treeResult_x.append(point.index[0])
         treeResult_y.append(point.index[1])
-    plt.scatter(treeResult_x, treeResult_y, c ="red",
-            linewidths = 1,
-            marker ="s",
-            s = 30)
-    plt.scatter(ehsResult_x, ehsResult_y, c ="black",
-            linewidths = 1,
-            marker ="s",
-            s = 30)
+    # plt.scatter(treeResult_x, treeResult_y, c ="red",
+    #         linewidths = 1,
+    #         marker ="s",
+    #         s = 30)
+    # plt.scatter(ehsResult_x, ehsResult_y, c ="black",
+    #         linewidths = 1,
+    #         marker ="s",
+    #         s = 30)
     print("result from exhaustive search:")
     for point in exhaustiveResult:
         print("- " + "[", point.index[0], ",",point.index[1],"]: " + str(Point.distance(point,target_point)))
